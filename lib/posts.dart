@@ -11,20 +11,12 @@ class Posts extends StatefulWidget {
 }
 
 class _PostsState extends State<Posts> {
-  bool loading = false;
-  List data = [];
 
-  getData() async {
-    setState(() {
-      loading = true;
-    });
+  Future<List> getData() async {
     var response = await get(
         Uri.parse('https://jsonplaceholder.typicode.com/posts'));
     var responseBody = jsonDecode(response.body);
-    setState(() {
-      loading = false;
-      data.addAll(responseBody);
-    });
+    return responseBody;
   }
 
   @override
@@ -39,20 +31,30 @@ class _PostsState extends State<Posts> {
       appBar: AppBar(
         title: const Text('PlaceHolder'),
       ),
-      body: ListView(
-        children: [
-          if(loading) const Center(child: CircularProgressIndicator(),),
-          ...List.generate(
-            data.length,
-            (index) => Card(
-              child: ListTile(
-                title: Text('${data[index]['title']}'),
-                subtitle: Text('${data[index]['body']}'),
-              ),
-            ),
-          )
-        ],
-      ),
+      body: Center(
+        child: FutureBuilder<List>(
+          future: getData(),
+          builder: (context, snapShot){
+            if (snapShot.connectionState == ConnectionState.waiting){
+              return const CircularProgressIndicator();
+            }
+            if (snapShot.hasError){
+              return Text('${snapShot.error}');
+            }
+            return ListView.builder(
+              itemCount: snapShot.data!.length,
+              itemBuilder: (context, index){
+              return Card(
+                elevation: 4,
+                child: ListTile(
+                  title: Text('${snapShot.data![index]['title']}'),
+                  subtitle: Text('${snapShot.data![index]['body']}'),
+                ),
+              );
+            },);
+          },
+        ),
+      )
     );
   }
 }
