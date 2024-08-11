@@ -14,6 +14,25 @@ class _PostsState extends State<Posts> {
   bool loading = false;
   List data = [];
 
+  getData() async {
+    setState(() {
+      loading = true;
+    });
+    var response = await get(
+        Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+    var responseBody = jsonDecode(response.body);
+    setState(() {
+      loading = false;
+      data.addAll(responseBody);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,27 +41,6 @@ class _PostsState extends State<Posts> {
       ),
       body: ListView(
         children: [
-          Container(
-            margin: const EdgeInsets.all(32),
-            child: MaterialButton(
-              onPressed: () async {
-                setState(() {
-                  loading = true;
-                });
-                var response = await get(
-                    Uri.parse('https://jsonplaceholder.typicode.com/posts'));
-                var responseBody = jsonDecode(response.body);
-                setState(() {
-                  loading = false;
-                  data.addAll(responseBody);
-                });
-              },
-              color: Colors.red,
-              textColor: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: const Text('Get Posts'),
-            ),
-          ),
           if(loading) const Center(child: CircularProgressIndicator(),),
           ...List.generate(
             data.length,
